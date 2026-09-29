@@ -40,8 +40,8 @@ RING_SECONDS = 45          # deep enough that the async collector can still reac
 WATCHDOG_TICK_S = 20       # how often to check each channel is still producing
 WATCHDOG_STALL_S = 60      # no frames for this long means the stream stalled, restart it
 THUMB_W, THUMB_H = 64, 36  # motion scoring resolution, tiny on purpose
-# Square cap, not 1280x720: the doorway is a portrait 2304x2592 fisheye and a landscape box
-# would squeeze it to 640 wide, throwing away the detail that makes it the sharpest camera
+# Square cap, not 1280x720: a portrait fisheye such as 2304x2592 hits a landscape box sideways
+# and gets squeezed to 640 wide, throwing away the detail that made it worth pointing there
 MAX_W, MAX_H = 1280, 1280
 # Outdoor channels only. A DVR app's "CAM N" usually maps to RTSP channel N
 CHANNELS = tuple(int(c) for c in os.environ.get("RING_CHANNELS", "1,2,3,4").split(","))
@@ -124,7 +124,7 @@ def capture_loop(ch):
             r = subprocess.run(
                 [FFMPEG, "-nostdin", "-loglevel", "error", "-rtsp_transport", "tcp",
                  "-i", url,
-                 # cap the frame: the doorway is a 2304x2592 fisheye, 6x the other cameras
+                 # cap the frame: a fisheye can be several times the resolution of the other cameras
                  "-vf", f"fps={RING_FPS},scale=w={MAX_W}:h={MAX_H}:force_original_aspect_ratio=decrease",
                  "-q:v", "4", "-f", "image2", os.path.join(d, "f_%06d.jpg")],
                 capture_output=True)
