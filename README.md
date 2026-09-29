@@ -1,6 +1,6 @@
 # vlm-security
 
-A local VLM (Vision Language Model) decides whether camera motion deserves an alarm.
+A local VLM (Vision Language Model) decides whether camera motion should trigger an alarm.
 
 A DVR's motion detection fires on foliage, rain, headlights and cats. An alarm wired straight to it
 gets ignored within a week. This puts a locally hosted VLM between the two: motion wakes a short
