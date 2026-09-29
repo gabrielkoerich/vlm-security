@@ -9,6 +9,10 @@ sanitising pass. Values resolve in this order:
   3. passbox, ONLY when asked        opt in with HN_USE_PASSBOX=1 or secret(..., allow_passbox=True)
   4. a generic default, never a real address
 
+Steps 1, 2 and 4 are all you need. Step 3 is optional and macOS only: passbox
+(https://github.com/gabrielkoerich/passbox) gates each secret behind Touch ID so it reaches one
+child process instead of the caller. Skip it and everything still works from env or the file.
+
 **The daemons must never reach step 3.** frame_ring, vehicle_bridge and plate_collector run
 under launchd 24/7, and passbox needs a real login session to raise Touch ID, so a call from a
 launchd agent or over SSH hangs rather than fails. Those processes read the untracked file.

@@ -99,6 +99,15 @@ python3 scripts/bridge.py selfcheck # exercise the parser, no hardware needed
 **`VLM_SCENE` and `VLM_RULES` are the part only you can write.** They tell the model what counts as
 your property, and a stranger's copy will produce nonsense at your address.
 
+### Secrets
+
+Environment variables or the local file cover everything. Optionally, on macOS, `config.py` can
+pull a secret from [passbox](https://github.com/gabrielkoerich/passbox), which gates each read
+behind Touch ID and hands the value to one child process. Opt in with `HN_USE_PASSBOX=1`.
+
+Long-running daemons should never use it: there is no login session under launchd to answer the
+prompt, so the call hangs. They read the untracked file instead.
+
 ## Status
 
 Extracted from a working installation that has run since 2026. Published as a reference for the
