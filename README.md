@@ -35,16 +35,22 @@ WHERE: street
 
 ```mermaid
 graph TB
-    DVR["DVR motion event"] --> RING
-    CAMS["RTSP streams"] --> RING["<b>frame_ring.py</b><br/>rolling buffer per camera"]
-    RING -->|"frames around the event"| BR["<b>bridge.py</b><br/>poll, gather, decide"]
+    DVR["<b>DVR</b><br/>cameras + motion detection"]
+    DVR -->|"RTSP streams"| RING["<b>frame_ring.py</b><br/>rolling buffer per camera"]
+    DVR -->|"motion events"| HA["<b>Home Assistant</b><br/>motion as binary_sensor"]
+    HA -->|"polled every 2s"| BR["<b>bridge.py</b><br/>gather, ask, decide"]
+    RING -->|"frames around the event"| BR
     BR -->|"base64 frames + prompt"| VLM["<b>Ollama</b><br/>vision model, local"]
     VLM -->|"PERSON / VEHICLE / COLOR / WHERE"| BR
-    BR -->|"on the property"| ALARM["alarm or notify"]
+    BR -->|"on the property"| ACT["alarm or notify<br/>back through Home Assistant"]
     BR -->|"on the street"| LOG["log only"]
-    BR -.->|"model unreachable"| ALARM
+    BR -.->|"model unreachable"| ACT
     DET["<b>detector_service.py</b><br/>YOLO over a burst"] -.->|"optional second opinion"| BR
 ```
+
+Home Assistant is the motion source and the notification sink. The bridge polls its
+`binary_sensor` states, which is where the entity IDs in `CAMS_JSON` come from, and acts back
+through it. Any source of motion events would do, this is what the reference installation uses.
 
 | Piece | Job |
 |---|---|
