@@ -1,0 +1,53 @@
+[project]
+name = "vlm-security"
+version = "0.1.0"
+description = "A local VLM decides whether camera motion should trigger an alarm"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "joblib>=1.4",
+    "numpy>=2.1",
+    "pillow>=11",
+    "scikit-learn>=1.6",
+]
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.31",
+    "pytest>=8.3",
+]
+# The embedding model and the detector. Only the services that run them need this group
+vision = [
+    "torch>=2.6",
+    "transformers>=4.50",
+    "ultralytics>=8.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["vlmsec"]
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.basedpyright]
+typeCheckingMode = "recommended"
+failOnWarnings = true
+reportUnusedCallResult = false
+pythonVersion = "3.13"
+include = ["vlmsec", "tests", "examples"]
+exclude = ["**/.venv", "**/.uv-cache"]
+stubPath = "typings"
+venvPath = "."
+venv = ".venv"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

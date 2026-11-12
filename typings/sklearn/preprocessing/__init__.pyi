@@ -1,0 +1,9 @@
+from typing import Self
+
+import numpy as np
+from numpy.typing import ArrayLike, NDArray
+
+class StandardScaler:
+    def __init__(self) -> None: ...
+    def fit(self, X: ArrayLike, y: ArrayLike | None = None) -> Self: ...
+    def transform(self, X: ArrayLike) -> NDArray[np.float64]: ...

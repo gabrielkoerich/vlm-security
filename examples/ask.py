@@ -1,58 +1,35 @@
-#!/usr/bin/env python3
 """Ask a local VLM what is in one image, and print what the bridge would decide.
 
-    python3 examples/ask.py frame.jpg
+    uv run examples/ask.py frame.jpg
 
 Needs Ollama running with a vision model pulled:
 
     ollama pull qwen3-vl:4b-instruct
 """
-import base64
-import json
-import os
+
 import sys
-import urllib.request
+from pathlib import Path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
-from bridge import PROMPT, parse, title_for, vehicle_color  # noqa: E402
-
-OLLAMA = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434/api/generate")
-MODEL = os.environ.get("VLM_MODEL", "qwen3-vl:4b-instruct")
-
-
-def ask(path):
-    img = base64.b64encode(open(path, "rb").read()).decode()
-    body = json.dumps({
-        "model": MODEL,
-        "prompt": PROMPT,
-        "images": [img],
-        "stream": False,
-        "options": {"temperature": 0.1, "num_predict": 100},
-    }).encode()
-    req = urllib.request.Request(OLLAMA, data=body, headers={"Content-Type": "application/json"})
-    return json.load(urllib.request.urlopen(req, timeout=120)).get("response", "").strip()
-
+from vlmsec.decide import decide
+from vlmsec.vlm import Asker, parse
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         sys.exit(__doc__)
-
-    answer = ask(sys.argv[1])
+    said = Asker().ask(Path(sys.argv[1]))
+    if said is None:
+        sys.exit("the model could not be reached, is Ollama running?")
     print("--- model said ---")
-    print(answer or "(no response)")
+    print(said or "(no response)")
 
-    present, person, vehicle, where = parse(answer)
+    a = parse(said)
     print("\n--- parsed ---")
-    print(f"  present : {present}")
-    print(f"  person  : {person}")
-    print(f"  vehicle : {vehicle}")
-    print(f"  colour  : {vehicle_color(answer) or '-'}")
-    print(f"  where   : {where}")
+    print(f"  present : {a.present}")
+    print(f"  person  : {a.person}")
+    print(f"  vehicle : {a.vehicle}")
+    print(f"  colour  : {a.color or '-'}")
+    print(f"  where   : {a.where}")
 
-    print("\n--- decision ---")
-    if not present:
-        print("  nothing there, no alarm")
-    elif where == "house":
-        print(f"  ALARM: {title_for(person, vehicle, where, vehicle_color(answer))}")
-    else:
-        print(f"  log only: {title_for(person, vehicle, where, vehicle_color(answer))}")
+    v = decide(a, armed=True)
+    print("\n--- decision, if armed ---")
+    print(f"  {v.action}: {v.title or 'nothing there'}")
