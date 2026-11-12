@@ -1,4 +1,7 @@
 __pycache__/
 *.pyc
 .venv/
+.uv-cache/
+.pytest_cache/
 *.conf
+*.joblib
